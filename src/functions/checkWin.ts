@@ -1,8 +1,7 @@
 import { gameArrayType, winingObjType } from "../types";
 
-const CheckWin = (gameArray : gameArrayType , xPlaying : boolean) => {
+const CheckWin = (gameArray : gameArrayType , search : "X" |"O") => {
     // Pour gagner, ligne / collonne / diagonale
-    const search : "X"|"O" = xPlaying ? 'X' : 'O';
     const gameLength = gameArray.length
     const colOccurence = Array(gameArray.length).fill(0)
     const lineOccurence = Array(gameArray.length).fill(0)

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import CheckWin from "../functions/checkWin";
 import { gameArrayType, winingObjType } from "../types";
 import isHilighted from "../functions/isHilighted";
-import {botTurns} from "../functions/botTurns";
+import { choseRandomPossibility, getAllPossibilities, scanPossibilities} from "../functions/botFunctions";
 
 interface GameProps {
     gameLength: number;
@@ -13,7 +13,7 @@ interface GameProps {
 
 export const Game: React.FC<GameProps> = ({ gameLength, needBot, botDifficulty , botSign }) => {
     const [gameArray, setGameArray] = useState<gameArrayType>(Array(gameLength).fill(Array(gameLength).fill('')));
-    const [isXturn, setIsXturn] = useState(true)
+    const [playerSign, setPlayerSIgn] = useState<"X"|"O">(botSign === "O" ? "X" : "O" )
     const [refresh, setRefresh] = useState(1)
     const [winingObj, setWiningObj] = useState<winingObjType>({
         winner : "",
@@ -38,27 +38,62 @@ export const Game: React.FC<GameProps> = ({ gameLength, needBot, botDifficulty ,
         console.log(newArray);
     }, [gameLength , refresh]);
     function nextTurn(){
-        setIsXturn(() => !isXturn)
-    }
-    function handleCLick(col : number, line : number){
-        const value = gameArray[col][line];
-        console.log({col,line})
-        if( value != "" || winingObj.win){
-            return;
+        if (!needBot){
+            setPlayerSIgn(playerSign === "O" ? "X" : "O")
         }
-        const newArray = gameArray.map((row) =>  [...row] );
-        newArray[col][line] = isXturn ? 'X' : 'O';
-        setGameArray(newArray);
-        const winingObjVar = CheckWin(newArray,isXturn);
+    }
+    function handleMove(position : {col : number , line :number} , sign : "X"|"O" , newArray : false |gameArrayType = false ){
+        console.log({sign , position})
+        const usedArray = newArray ? newArray : gameArray
+        const array = usedArray.map((row) =>  [...row] );
+        array[position.col][position.line] = sign;
+        setGameArray(array);
+        return array;
+    }
+    function handleCheckWin(newArray : gameArrayType , sign :"X"|"O"){
+        const winingObjVar = CheckWin(newArray,sign);
         if (winingObjVar.win){
             setWiningObj({...winingObjVar})
             return;
         }
-        if (!needBot){
-            nextTurn();
+        if (needBot && playerSign === sign){
+            botTurns(newArray)
             return;
         }
-        botTurns(botDifficulty , gameArray , botSign )
+        nextTurn();
+    }
+    function handleCLick(col : number, line : number){
+        const value = gameArray[col][line];
+        if( value != "" || winingObj.win){
+            return;
+        }
+        const newArray = handleMove({col , line}, playerSign)
+        handleCheckWin(newArray , playerSign);
+        
+    }
+    const botTurns = (newArray : gameArrayType) => {
+        let possibilities : Array<{col:number, line: number} | null> = [];
+        if (botDifficulty === 0){
+            possibilities = getAllPossibilities(newArray)
+        }
+        else{
+            const scan = scanPossibilities(botDifficulty , newArray , botSign , botSign);
+            console.log(scan)
+            if (!scan.moves || scan.moves.length === 0){
+                console.log("No moves (sa ne devrait pas arriver ?)")
+            }
+            else{
+                possibilities = scan.moves
+            }
+        }
+        const chosenPlay : {col:number , line:number} | null = possibilities.length === 1 ? possibilities[0] : choseRandomPossibility(possibilities);
+        if (chosenPlay === null){
+            setWiningObj( {...winingObj , win : true, winner : "" });
+            return;
+        }
+        const array = handleMove(chosenPlay, botSign , newArray);
+        handleCheckWin(array , botSign)
+        
     }
 
 
@@ -66,7 +101,7 @@ export const Game: React.FC<GameProps> = ({ gameLength, needBot, botDifficulty ,
     return (
         <div className=" text-white w-full flex flex-col gap-6  my-20">
             <div className="h-30">
-                <div className="flex">C'est à {isXturn ? "X" : "O"} de jouer</div>
+                <div className="flex">C'est à {playerSign} de jouer</div>
                 {winingObj.win && (
                     <h1 className={"text-4xl text-center underline font-bold " + (winingObj.winner==="" ? "text-red-800" : "text-green-500")}>{winingObj.winner === "" ? "Personne n'à gagnés :(" : winingObj.winner + " a gagnés la partie !"}</h1>
                 )}
@@ -74,8 +109,8 @@ export const Game: React.FC<GameProps> = ({ gameLength, needBot, botDifficulty ,
             <div
                 className="flex flex-col self-center"
                 style={{
-                height: "800px", 
-                width: "800px",  
+                    height: "500px", 
+                    width: "500px",  
                 }}
             >
                 {gameArray.map((line:Array<string>, colI) => (

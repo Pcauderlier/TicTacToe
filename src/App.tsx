@@ -10,7 +10,7 @@ function App() {
   const [botSign, setBotSign] = useState<"X" | "O">("X");
 
   return (
-    <div className='bg-black text-white w-full' style={{height:"100vh"}}>
+    <div className='bg-black text-white w-full' style={{height:"1200px"}}>
       {preGameOver ? (
         <>
           <button className='border border-white rounded-xl p-2 m-4' onClick={()=> setPreGameOver(false)}>Settings</button>
