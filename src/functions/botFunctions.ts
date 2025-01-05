@@ -1,20 +1,12 @@
 import { gameArrayType } from "../types"
 import CheckWin from "./checkWin";
 
-interface ScanPossibilitiesArgs {
-    botDifficulty: number;
-    newArray: gameArrayType;
-    botSign: "X" | "O";
-    sign: "X" | "O";
-    functionCount?: number;
-    bestMovesHistoric?: Array<{ col: number; line: number }>;
-    intialMove?: { col: number; line: number } | null;
-}
-
 
 type branchMemoryType = {
     [depth:number] : number
 }
+let brancheCOunter = 0
+
 export default function branchAnalysis(
     
     branchDepth: number,
@@ -25,7 +17,7 @@ export default function branchAnalysis(
     branchMemory : branchMemoryType,
     
 ){
-
+    brancheCOunter++
     const newGameState = [...gameState.map((row) => [...row])];
     newGameState[move.col][move.line] = sign;
     // console.log({move,newGameState});
@@ -60,7 +52,16 @@ export default function branchAnalysis(
                 if (!branchMemoryClone[depthKey]) {
                     branchMemoryClone[depthKey] = 0;
                 }
-                branchMemoryClone[depthKey] += subBranchMemory[depthKey];
+                console.log(
+                    `Before: branchMemoryClone[${depthKey}] = ${branchMemoryClone[depthKey]}`
+                );
+                branchMemoryClone[depthKey] = Math.max(
+                    branchMemoryClone[depthKey] || 0,
+                    subBranchMemory[depthKey]
+                );
+                console.log(
+                    `After: branchMemoryClone[${depthKey}] = ${branchMemoryClone[depthKey]}`
+                );
             })
         })
     }
@@ -80,6 +81,7 @@ export function scanPossibilities_v2(
     const allPossibilities = getAllPossibilities(newArray);
     const results : Array<{move : {col:number,line:number},checkBranch : branchMemoryType}> = [];
     const bestMoves : Array<{col:number, line:number}> = [];
+
     allPossibilities.forEach((value) => {
         const checkBranch = branchAnalysis(0,newArray,botDifficulty, sign,value,{});
         console.log("CheckBranch n°" + value.col + "," + value.line)
@@ -92,7 +94,6 @@ export function scanPossibilities_v2(
         results.forEach(obj => {
             
             if (obj.checkBranch[i]> 0){
-                console.log(obj.checkBranch[i]);
                 exitFor = true
             }
         });
@@ -116,9 +117,12 @@ export function scanPossibilities_v2(
                 bestMoves.push(sortedRes[index].move)
                 index++
             }
+            console.log("Total des branche explorées : "  + brancheCOunter)
             return bestMoves
         }
+        
     }
+    console.log("Total des branche explorées : "  + brancheCOunter)
     return bestMoves
 
 
