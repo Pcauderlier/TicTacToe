@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import CheckWin from "../functions/checkWin";
 import { gameArrayType, winingObjType } from "../types";
 import isHilighted from "../functions/isHilighted";
-import { choseRandomPossibility, getAllPossibilities, scanPossibilities} from "../functions/botFunctions";
+import branchAnalysis, { choseRandomPossibility, getAllPossibilities, scanPossibilities, scanPossibilities_v2} from "../functions/botFunctions";
 
 interface GameProps {
     gameLength: number;
@@ -36,7 +36,12 @@ export const Game: React.FC<GameProps> = ({ gameLength, needBot, botDifficulty ,
             oppositDiag : false
         })
         console.log(newArray);
+        if(botSign === "X" && needBot){
+            botTurns(newArray);
+        }
     }, [gameLength , refresh]);
+
+    
     function nextTurn(){
         if (!needBot){
             setPlayerSIgn(playerSign === "O" ? "X" : "O")
@@ -44,6 +49,7 @@ export const Game: React.FC<GameProps> = ({ gameLength, needBot, botDifficulty ,
     }
     function handleMove(position : {col : number , line :number} , sign : "X"|"O" , newArray : false |gameArrayType = false ){
         console.log({sign , position})
+        
         const usedArray = newArray ? newArray : gameArray
         const array = usedArray.map((row) =>  [...row] );
         array[position.col][position.line] = sign;
@@ -72,19 +78,10 @@ export const Game: React.FC<GameProps> = ({ gameLength, needBot, botDifficulty ,
         
     }
     const botTurns = (newArray : gameArrayType) => {
-        let possibilities : Array<{col:number, line: number} | null> = [];
-        if (botDifficulty === 0){
-            possibilities = getAllPossibilities(newArray)
-        }
-        else{
-            const scan = scanPossibilities(botDifficulty , newArray , botSign , botSign);
-            console.log(scan)
-            if (!scan.moves || scan.moves.length === 0){
-                console.log("No moves (sa ne devrait pas arriver ?)")
-            }
-            else{
-                possibilities = scan.moves
-            }
+        let possibilities = getAllPossibilities(newArray)
+        if (botDifficulty !== 0){
+            const scan = scanPossibilities_v2(botDifficulty,newArray,botSign,botSign);
+            possibilities = scan.length > 0 ? scan : possibilities
         }
         const chosenPlay : {col:number , line:number} | null = possibilities.length === 1 ? possibilities[0] : choseRandomPossibility(possibilities);
         if (chosenPlay === null){
@@ -95,7 +92,7 @@ export const Game: React.FC<GameProps> = ({ gameLength, needBot, botDifficulty ,
         handleCheckWin(array , botSign)
         
     }
-
+   
 
 
     return (

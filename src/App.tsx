@@ -7,7 +7,7 @@ function App() {
   const [gameLength, setGameLength] = useState(3);
   const [needBot, setNeedBot] = useState(false);
   const [botDifficulty, setBotDifficutly] = useState(0)
-  const [botSign, setBotSign] = useState<"X" | "O">("X");
+  const [botSign, setBotSign] = useState<"X" | "O">("O");
 
   return (
     <div className='bg-black text-white w-full' style={{height:"1200px"}}>
