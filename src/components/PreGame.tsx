@@ -14,7 +14,7 @@ interface PreGameProps {
 
 export const PreGame:React.FC<PreGameProps> = ({setPreGameOver , gameLength, setGameLength, needBot, setNeedBot, botDifficulty, setBotDifficulty , botSign, setBotSign}) => {
   return (
-    <div className='w-full h-screen text-center justify-center items-center border flex flex-col gap-8'>
+    <div className='w-full h-screen text-center justify-center items-center flex flex-col gap-8'>
         <h1 className='text-4xl'>
             Nouvelle partie:
         </h1>
