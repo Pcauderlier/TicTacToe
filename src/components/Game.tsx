@@ -48,7 +48,6 @@ export const Game: React.FC<GameProps> = ({ gameLength, needBot, botDifficulty ,
         }
     }
     function handleMove(position : {col : number , line :number} , sign : "X"|"O" , newArray : false |gameArrayType = false ){
-        console.log({sign , position})
         
         const usedArray = newArray ? newArray : gameArray
         const array = usedArray.map((row) =>  [...row] );

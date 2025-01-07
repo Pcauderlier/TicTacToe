@@ -34,9 +34,9 @@ export const PreGame:React.FC<PreGameProps> = ({setPreGameOver , gameLength, set
             <>
             
             <div className='flex flex-col gap-3'>
-                <label className='text-xl'>Difficulté du robot ? (0 à 5)</label>
-                <input type='number' value={botDifficulty} onChange={(e) => setBotDifficulty(+(e.target.value))}  className='bg-black border border-blue-500 p-4 rounded-xl text-center' min={"0"} max={5}/>
-                <p className='text-red-800'>{(botDifficulty < 0 || botDifficulty > 5 ) && "Difficulter entre 0 et 5"}</p>
+                <label className='text-xl'>Difficulté du robot ? (0 à 8 )</label>
+                <input type='number' value={botDifficulty} onChange={(e) => setBotDifficulty(+(e.target.value))}  className='bg-black border border-blue-500 p-4 rounded-xl text-center' min={"0"} max={8}/>
+                <p className='text-red-800'>{(botDifficulty < 0 || botDifficulty > 8 ) && "Difficulter entre 0 et 8"}</p>
             </div>
             <div className='flex flex-col gap-3'>
                 <label className='text-xl'>Le robot joue :</label>

@@ -1,11 +1,8 @@
-import { gameArrayType } from "../types"
+import { branchMemoryType, gameArrayType, resultType } from "../types"
 import CheckWin from "./checkWin";
 
 
-type branchMemoryType = {
-    [depth:number] : number
-}
-let brancheCOunter = 0
+
 
 export default function branchAnalysis(
     
@@ -17,10 +14,8 @@ export default function branchAnalysis(
     branchMemory : branchMemoryType,
     
 ){
-    brancheCOunter++
     const newGameState = [...gameState.map((row) => [...row])];
     newGameState[move.col][move.line] = sign;
-    // console.log({move,newGameState});
     
     const checkWin = CheckWin(newGameState,sign);
     const branchMemoryClone = {...branchMemory};
@@ -29,8 +24,6 @@ export default function branchAnalysis(
     }
     if (checkWin.win){
         // console.log("Gagnant !");
-        
-        // console.log(checkWin)
         if (checkWin.winner !== ""){
             // Les branches impaire sont des défaite, et paire sont des victoire
             branchMemoryClone[branchDepth] += 1
@@ -45,23 +38,22 @@ export default function branchAnalysis(
         }
         const allPossibilities = getAllPossibilities(newGameState);
         allPossibilities.forEach((value) => {
-            const subBranchMemory = branchAnalysis(branchDepth + 1 ,newGameState,botDifficulty, (sign === "X" ? "O" : "X"),value,branchMemoryClone);
+            const subBranchMemory = branchAnalysis(branchDepth + 1 ,newGameState,botDifficulty, (sign === "X" ? "O" : "X"),value,{});
             // console.log({value , subBranchMemory , branchDepth})
             Object.keys(subBranchMemory).forEach((key) => {
                 const depthKey = parseInt(key , 10);
                 if (!branchMemoryClone[depthKey]) {
                     branchMemoryClone[depthKey] = 0;
                 }
-                console.log(
-                    `Before: branchMemoryClone[${depthKey}] = ${branchMemoryClone[depthKey]}`
-                );
-                branchMemoryClone[depthKey] = Math.max(
-                    branchMemoryClone[depthKey] || 0,
-                    subBranchMemory[depthKey]
-                );
-                console.log(
-                    `After: branchMemoryClone[${depthKey}] = ${branchMemoryClone[depthKey]}`
-                );
+                if (subBranchMemory[depthKey] !== 0){
+                 
+                    // branchMemoryClone[depthKey] = Math.max(
+                    //     branchMemoryClone[depthKey] || 0,
+                    //     subBranchMemory[depthKey]
+                    // );
+                    branchMemoryClone[depthKey] += subBranchMemory[depthKey]
+                   
+                }
             })
         })
     }
@@ -79,8 +71,8 @@ export function scanPossibilities_v2(
 ){
     console.log("difficulty : "+botDifficulty)
     const allPossibilities = getAllPossibilities(newArray);
-    const results : Array<{move : {col:number,line:number},checkBranch : branchMemoryType}> = [];
-    const bestMoves : Array<{col:number, line:number}> = [];
+    const results : resultType = [];
+    let bestMoves : Array<{col:number, line:number}> = [];
 
     allPossibilities.forEach((value) => {
         const checkBranch = branchAnalysis(0,newArray,botDifficulty, sign,value,{});
@@ -89,43 +81,66 @@ export function scanPossibilities_v2(
         results.push({move : value , checkBranch })
     })
 
-    let exitFor = false;
+    let goodMoves : resultType = results;
     for (let i = 0; i <= botDifficulty; i++){
-        results.forEach(obj => {
+        goodMoves = checkBestMoves(goodMoves,i)
+        // results.forEach(obj => {
             
-            if (obj.checkBranch[i]> 0){
-                exitFor = true
-            }
-        });
-        if (exitFor){
+        //     if (obj.checkBranch[i]> 0){
+        //         exitFor = true
+        //     }
+        // });
+        // if (exitFor){
             
-            console.log("------------------------------------------------------------------------------");
-            console.log("Tris sur la profondeur : " + (i));
-            const sortedRes = [...results].sort((a, b) => {
-                const aValue = a.checkBranch[i] || 0;
-                const bValue = b.checkBranch[i] || 0;
-                if(i%2 === 0){
-                    // On cherche les plus grand
-                    return bValue - aValue;
-                }
-                // Sinon on cherche le plus petit
-                return aValue - bValue
-            });
-            console.log(sortedRes)
-            let index = 0
-            while (index < sortedRes.length && sortedRes[index].checkBranch[i] === sortedRes[0].checkBranch[i]){
-                bestMoves.push(sortedRes[index].move)
-                index++
-            }
-            console.log("Total des branche explorées : "  + brancheCOunter)
-            return bestMoves
-        }
+        //     console.log("------------------------------------------------------------------------------");
+        //     console.log("Tris sur la profondeur : " + (i));
+        //     const sortedRes = [...results].sort((a, b) => {
+        //         const aValue = a.checkBranch[i] || 0;
+        //         const bValue = b.checkBranch[i] || 0;
+        //         if(i%2 === 0){
+        //             // On cherche les plus grand
+        //             return bValue - aValue;
+        //         }
+        //         // Sinon on cherche le plus petit
+        //         return aValue - bValue
+        //     });
+        //     checkBestMoves(sortedRes)
+        //     let index = 0
+        //     while (index < sortedRes.length && sortedRes[index].checkBranch[i] === sortedRes[0].checkBranch[i]){
+        //         bestMoves.push(sortedRes[index].move)
+        //         index++
+        //     }
+        //     // console.log("Total des branche explorées : "  + brancheCOunter)
+        //     return bestMoves
+        // }
         
     }
-    console.log("Total des branche explorées : "  + brancheCOunter)
+    console.log(goodMoves)
+    goodMoves.forEach(element => {
+        bestMoves.push(element.move)
+    });
     return bestMoves
-
-
+}
+function checkBestMoves(results : resultType , index : number){
+    const sortedRes = [...results].sort((a, b) => {
+        const aValue = a.checkBranch[index] || 0;
+        const bValue = b.checkBranch[index] || 0;
+        if(index%2 === 0){
+            // On cherche les plus grand
+            return bValue - aValue;
+        }
+        // Sinon on cherche le plus petit
+        return aValue - bValue
+    });
+    let ii = 0
+    const bestMoves = [];
+    while (ii < sortedRes.length && sortedRes[ii].checkBranch[index] === sortedRes[0].checkBranch[index]){
+        bestMoves.push(sortedRes[ii])
+        ii++
+    }
+    return bestMoves
+    
+    
 }
 
 export function getAllPossibilities(gameArray:gameArrayType ){

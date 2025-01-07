@@ -8,3 +8,9 @@ export type winingObjType = {
     diag : boolean,
     oppositDiag : boolean
 }
+export type branchMemoryType = {
+    [depth:number] : number
+}
+
+
+export type resultType =  Array<{move : {col:number,line:number},checkBranch : branchMemoryType}>
